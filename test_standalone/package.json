@@ -1,0 +1,8 @@
+{
+  "name": "servis-takip-cloud-functions-tests",
+  "private": true,
+  "scripts": {
+    "test": "node cloud_functions_tests.js"
+  },
+  "dependencies": {}
+}
