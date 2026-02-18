@@ -1,0 +1,10 @@
+{
+  "rules": {
+    "konumlar": {
+      "$servisId": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('personeller').child(auth.uid).child('rol').val() === 'sofor'"
+      }
+    }
+  }
+}

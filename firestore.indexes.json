@@ -1,0 +1,33 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "rotalar",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "servisId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "olusturulmaTarihi",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "personeller",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "servisId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "katilimDurumu",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

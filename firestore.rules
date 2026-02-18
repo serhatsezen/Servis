@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Yardımcı fonksiyonlar
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/personeller/$(request.auth.uid)).data.rol;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && getUserRole() == 'admin';
+    }
+
+    function isSofor() {
+      return isAuthenticated() && getUserRole() == 'sofor';
+    }
+
+    function isPersonel() {
+      return isAuthenticated() && getUserRole() == 'personel';
+    }
+
+    // Servisler koleksiyonu
+    match /servisler/{servisId} {
+      // Herkes okuyabilir (giriş yapmış)
+      allow read: if isAuthenticated();
+
+      // Sadece admin oluşturabilir ve silebilir
+      allow create, delete: if isAdmin();
+
+      // Admin her şeyi güncelleyebilir, şoför sadece konum ve aktiflik güncelleyebilir
+      allow update: if isAdmin() ||
+        (isSofor() && resource.data.soforId == request.auth.uid &&
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['konum', 'aktifMi']));
+    }
+
+    // Personeller koleksiyonu
+    match /personeller/{personelId} {
+      // Herkes kendi profilini okuyabilir, admin herkesi okuyabilir
+      allow read: if isAuthenticated() &&
+        (isOwner(personelId) || isAdmin() ||
+         // Aynı servisteki şoför ve personeller birbirini görebilir
+         resource.data.servisId != null);
+
+      // Kayıt sırasında profil oluşturma
+      allow create: if isAuthenticated() && isOwner(personelId);
+
+      // Kendi profilini güncelleyebilir (sadece izin verilen alanlar)
+      allow update: if isAuthenticated() &&
+        (isOwner(personelId) &&
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['binisNoktasi', 'katilimDurumu', 'servisId'])) ||
+        isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // Rotalar koleksiyonu
+    match /rotalar/{rotaId} {
+      // Giriş yapmış herkes rota okuyabilir
+      allow read: if isAuthenticated();
+
+      // Sadece admin ve Cloud Functions yazabilir
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}
